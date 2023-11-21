@@ -21,15 +21,24 @@ from typing import Any, Optional
 
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
+import voluptuous as vol
 
 from .const import DOMAIN, NAME
 
+AUTH_SCHEMA = vol.Schema(
+    {
+        vol.Required("user_id"): str,
+        vol.Required("email"): str,
+        vol.Required("api_key"): str        
+    })
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, info: dict[str, Any] | None = None) -> FlowResult:
         """Handle a flow initialized by the user."""
-        return self.async_create_entry(title=NAME, data={})
+        if info is not None:
+            return self.async_create_entry(title=NAME, data=info)
+        
+        return self.async_show_form(step_id="user", data_schema=AUTH_SCHEMA)
+        

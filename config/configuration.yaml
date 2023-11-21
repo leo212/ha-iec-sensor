@@ -5,5 +5,5 @@ default_config:
 logger:
   default: warning
   logs:
-    homeassistant_historical_sensor: debug
-    custom_components.delorian: debug
+    ha_iec_sensor: debug
+    custom_components.iec_sensor: debug

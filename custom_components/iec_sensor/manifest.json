@@ -1,8 +1,9 @@
 {
-  "domain": "delorian",
-  "name": "Delorian - Testing integration for historical sensors",
+  "domain": "iec_sensor",
+  "name": "IEC Sensor - Read Electricity Usage from IEC Website",
   "codeowners": [
-    "@ldotlopez"
+    "@ldotlopez",
+    "@leo212"
   ],
   "dependencies": [
     "recorder"
@@ -12,7 +13,8 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/ldotlopez/ha-historical-sensor/issues",
   "requirements": [
-    "homeassistant-historical-sensor==2.0.0rc2"
+    "homeassistant-historical-sensor==2.0.0rc2",    
+    "httpx"
   ],
-  "version": "2.0.0rc2"
+  "version": "0.0.1"
 }

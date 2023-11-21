@@ -54,7 +54,6 @@ PLATFORM = "sensor"
 
 _LOGGER = logging.getLogger(__name__)
 
-
 class Sensor(PollUpdateMixin, HistoricalSensor, SensorEntity):
     #
     # Base clases:
@@ -87,30 +86,34 @@ class Sensor(PollUpdateMixin, HistoricalSensor, SensorEntity):
         # want that hass try to do anything with those statistics because we
         # (HistoricalSensor) handle generation and importing
         #
-        # self._attr_state_class = SensorStateClass.MEASUREMENT
-
-        self.api = API()
+        # self._attr_state_class = SensorStateClass.MEASUREMENT  
+        self._config = kwargs["config_entry"]
+        self.api = API(self._config.data.get("user_id"), self._config.data.get("email"), self._config.data.get("api_key"))
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
+
 
     async def async_update_historical(self):
         # Fill `HistoricalSensor._attr_historical_states` with HistoricalState's
         # This functions is equivaled to the `Sensor.async_update` from
         # HomeAssistant core
-        #
-        # Important: You must provide datetime with tzinfo
-
+        id_token = await self.api.get_token()        
+        result = await self.api.fetch(id_token)
         hist_states = [
             HistoricalState(
                 state=state,
-                dt=dtutil.as_local(dt),  # Add tzinfo, required by HistoricalSensor
+                dt=dtutil.as_local(dt)
             )
-            for (dt, state) in self.api.fetch(
-                start=datetime.now() - timedelta(days=3), step=timedelta(minutes=15)
-            )
+            for (dt, state) in result
         ]
+        # if (len(hist_states) > 0):
+        #     self.hass.states.async_set("sensor.delorian", "ok", 
+        #                                 {"last_updated" : datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
+        #                                  "id_token" : id_token})
+
         self._attr_historical_states = hist_states
+        
 
     @property
     def statistic_id(self) -> str:
@@ -171,14 +174,7 @@ class Sensor(PollUpdateMixin, HistoricalSensor, SensorEntity):
         return ret
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_devices: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,  # noqa DiscoveryInfoType | None
-):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_devices: AddEntitiesCallback, discovery_info: DiscoveryInfoType | None = None):
     device_info = hass.data[DOMAIN][config_entry.entry_id]
-    sensors = [
-        Sensor(config_entry=config_entry, device_info=device_info),
-    ]
+    sensors = [ Sensor(config_entry=config_entry, device_info=device_info)]
     async_add_devices(sensors)
