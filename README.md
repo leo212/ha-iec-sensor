@@ -1,4 +1,4 @@
-#  IEC (Israel Electricity Company) data poller sensor for Home Assistant ![](icon-64.png)
+#  IEC (Israel Electricity Company) data poller sensor for Home Assistant 
 
 <!-- Code and releases -->
 
