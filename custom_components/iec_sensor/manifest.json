@@ -16,5 +16,5 @@
     "homeassistant-historical-sensor==2.0.0rc2",    
     "httpx"
   ],
-  "version": "0.0.1"
+  "version": "0.0.2"
 }

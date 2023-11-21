@@ -16,5 +16,5 @@
 # USA.
 
 
-DOMAIN = "delorian"
-NAME = "delorian"
+DOMAIN = "iec_sensor"
+NAME = "iec_sensor"
