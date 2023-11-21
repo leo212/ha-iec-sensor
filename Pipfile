@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-homeassistant-historical-sensor = {editable = true, path = "."}
+ha-iec-sensor = {editable = true, path = "."}
 
 [dev-packages]
 sqlalchemy = "*"

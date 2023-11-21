@@ -9,4 +9,4 @@ target-version = ['py39']
 profile = "black"
 
 [tool.mypy]
-files = ['homeassistant_historical_sensor']
+files = ['ha_iec_sensor']
