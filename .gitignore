@@ -7,3 +7,4 @@ Pipfile.lock
 config
 !config/custom_components
 !config/configuration.yaml
+test.py
