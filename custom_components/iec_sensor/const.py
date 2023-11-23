@@ -14,7 +14,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
-
+from datetime import timedelta
 
 DOMAIN = "iec_sensor"
 NAME = "iec_sensor"
+SCAN_INTERVAL = timedelta(hours=6)
+UPDATE_INTERVAL = timedelta(hours=6)
