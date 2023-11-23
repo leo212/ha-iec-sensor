@@ -264,12 +264,3 @@ class API:
 
         print(result)
         return list(result) 
-    
-async def test():
-    api = API("040966277", "leo212@mailsac.com", "k_y44SP27Zb4DfQAfALKyXdOVbnDTF0tRyCG8J9yRLkiZAa7e1")    
-    token = await api.get_token()    
-    result = await api.fetch(token)
-    print(result)
-
-
-#asyncio.get_event_loop().run_until_complete(test())
