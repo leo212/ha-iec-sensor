@@ -107,10 +107,6 @@ class Sensor(PollUpdateMixin, HistoricalSensor, SensorEntity):
             )
             for (dt, state) in result
         ]
-        # if (len(hist_states) > 0):
-        #     self.hass.states.async_set("sensor.delorian", "ok", 
-        #                                 {"last_updated" : datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
-        #                                  "id_token" : id_token})
 
         self._attr_historical_states = hist_states
         

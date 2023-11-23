@@ -29,13 +29,13 @@ class API:
 
     async def async_post(self, url, headers=None, json=None, data=None):
         async with httpx.AsyncClient() as client:
-            response = await client.post(url, cookies=self.cookies, headers=headers, json=json, data=data)
+            response = await client.post(url, cookies=self.cookies, headers=headers, json=json, data=data, timeout=30)
             self.cookies = response.cookies
             return response
 
     async def async_get(self, url, headers=None):
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, cookies=self.cookies, headers=headers)
+            response = await client.get(url, cookies=self.cookies, headers=headers, timeout=30)
             self.cookies = response.cookies
             return response
         
@@ -92,8 +92,8 @@ class API:
                     response = await self.async_post(verify_url, 
                                             headers=headers,
                                             json={"passCode":otp_code[0], "stateToken": state_token})
-                    print(response.status_code)
-                    print(response.text)
+                    #print(response.status_code)
+                    #print(response.text)
                     if (response.status_code == 200):
                         response_data = response.json()
                         session_token = response_data["sessionToken"]
@@ -118,8 +118,6 @@ class API:
         response = await self.async_get(url)
         
         if (response.status_code == 200):
-            print(response.text)
-
             # find the data code in the response text
             match = re.search(r"data\.code\s*=\s*'([^']*)'", response.text)
             if match:
@@ -217,11 +215,12 @@ class API:
         json = {"meterSerialNumber":meter_serial_number,"meterCode":meter_code,"lastInvoiceDate":from_date,"fromDate":from_date,"resolution":1}
         response = await self.async_post("https://iecapi.iec.co.il//api/Consumption/RemoteReadingRange", headers=headers, json=json)
         if (response.status_code == 200):
+            print(response.json())
             return response.json()
         else:
             print(f'get_remote_stats request failed with status code {response.status_code}.')
             print('Response:', response.text)
-            return []
+            return {"data":[]}
 
     async def get_token(self):  
         # retrieve a session token by identifing with OTP code
@@ -245,16 +244,13 @@ class API:
                     contract_id = contracts["contracts"][0]["contractId"]
                     device = await self.get_device_info(id_token, contract_id)
                     print(device)
-                    # yesterday stats
-                    stats = await self.get_remote_stats(id_token, device["deviceNumber"], device["deviceCode"], (datetime.now()- timedelta(days=1)).strftime('%Y-%m-%d'))
-                    for stat in stats["data"]:
-                        v = (datetime.strptime(stat["date"], '%Y-%m-%dT%H:%M:%S.%f'), stat["value"])
-                        yield v      
-                    # today's stats
-                    stats = await self.get_remote_stats(id_token, device["deviceNumber"], device["deviceCode"], (datetime.now()).strftime('%Y-%m-%d'))
-                    for stat in stats["data"]:
-                        v = (datetime.strptime(stat["date"], '%Y-%m-%dT%H:%M:%S.%f'), stat["value"])
-                        yield v                      
+                    for i in range(2,-1,-1):
+                        date_str = (datetime.now()- timedelta(days=i)).strftime('%Y-%m-%d')
+                        stats = await self.get_remote_stats(id_token, device["deviceNumber"], device["deviceCode"], date_str)
+                        print("fetched "+str(len(stats["data"]))+" values for "+ date_str)
+                        for stat in stats["data"]:
+                            v = (datetime.strptime(stat["date"], '%Y-%m-%dT%H:%M:%S.%f'), stat["value"])
+                            yield v                             
             
         print("fetching historical data...")        
         start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)    
@@ -264,12 +260,3 @@ class API:
 
         print(result)
         return list(result) 
-    
-async def test():
-    api = API("040966277", "leo212@mailsac.com", "k_y44SP27Zb4DfQAfALKyXdOVbnDTF0tRyCG8J9yRLkiZAa7e1")    
-    token = await api.get_token()    
-    result = await api.fetch(token)
-    print(result)
-
-
-#asyncio.get_event_loop().run_until_complete(test())
