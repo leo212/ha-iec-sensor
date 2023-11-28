@@ -209,11 +209,11 @@ class API:
             print('Response:', response.text)
             return {}
     
-    async def get_remote_stats(self, id_token, meter_serial_number, meter_code, from_date):
+    async def get_remote_stats(self, id_token, contract_id, meter_serial_number, meter_code, from_date):
         # read the stats from there
         headers = {"accept": "application/json", "content-type":"application/json", "x-iec-idt": "1", "authorization": "Bearer " + id_token}   
         json = {"meterSerialNumber":meter_serial_number,"meterCode":meter_code,"lastInvoiceDate":from_date,"fromDate":from_date,"resolution":1}
-        response = await self.async_post("https://iecapi.iec.co.il//api/Consumption/RemoteReadingRange", headers=headers, json=json)
+        response = await self.async_post("https://iecapi.iec.co.il//api/Consumption/RemoteReadingRange/"+contract_id, headers=headers, json=json)
         if (response.status_code == 200):
             print(response.json())
             return response.json()
@@ -236,21 +236,24 @@ class API:
         async def fetch_stats(start: datetime):                                 
             accounts = await self.get_accounts(id_token)
             print(accounts)
-            if (len(accounts) > 0):
-                account_id = accounts[0]['accountNumber']
-                contracts = await self.get_contracts(id_token, account_id)
-                print(contracts)
-                if (len(contracts) > 0):
-                    contract_id = contracts["contracts"][0]["contractId"]
-                    device = await self.get_device_info(id_token, contract_id)
-                    print(device)
-                    for i in range(2,-1,-1):
-                        date_str = (datetime.now()- timedelta(days=i)).strftime('%Y-%m-%d')
-                        stats = await self.get_remote_stats(id_token, device["deviceNumber"], device["deviceCode"], date_str)
-                        print("fetched "+str(len(stats["data"]))+" values for "+ date_str)
-                        for stat in stats["data"]:
-                            v = (datetime.strptime(stat["date"], '%Y-%m-%dT%H:%M:%S.%f'), stat["value"])
-                            yield v                             
+            if (accounts != None and len(accounts) > 0):
+                # find the account with the id of the user
+                for account in accounts:
+                    if (account["governmentNumber"] == self.user_id):                                                    
+                        account_id = account['accountNumber']
+                        contracts = await self.get_contracts(id_token, account_id)
+                        print(contracts)
+                        if (len(contracts) > 0):
+                            contract_id = contracts["contracts"][0]["contractId"]
+                            device = await self.get_device_info(id_token, contract_id)
+                            print(device)
+                            for i in range(2,-1,-1):
+                                date_str = (datetime.now()- timedelta(days=i)).strftime('%Y-%m-%d')
+                                stats = await self.get_remote_stats(id_token, contract_id, device["deviceNumber"], device["deviceCode"], date_str)
+                                print("fetched "+str(len(stats["data"]))+" values for "+ date_str)
+                                for stat in stats["data"]:
+                                    v = (datetime.strptime(stat["date"], '%Y-%m-%dT%H:%M:%S.%f'), stat["value"])
+                                    yield v                             
             
         print("fetching historical data...")        
         start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)    
