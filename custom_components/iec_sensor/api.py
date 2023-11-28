@@ -191,7 +191,7 @@ class API:
 
     async def get_contracts(self, id_token, account_id):
         headers = {"accept": "application/json", "content-type":"application/json", "x-iec-idt": "1", "authorization": "Bearer " + id_token}   
-        response = await self.async_get("https://iecapi.iec.co.il//api/customer/contract/0102370814", headers=headers)
+        response = await self.async_get("https://iecapi.iec.co.il//api/customer/contract/"+account_id, headers=headers)
         if (response.status_code == 200):
             return response.json()["data"]
         else:
@@ -201,7 +201,7 @@ class API:
 
     async def get_device_info(self, id_token, contract_id):
         headers = {"accept": "application/json", "content-type":"application/json", "x-iec-idt": "1", "authorization": "Bearer " + id_token}   
-        response = await self.async_get("https://iecapi.iec.co.il//api/Device/000341681679", headers=headers)
+        response = await self.async_get("https://iecapi.iec.co.il//api/Device/"+contract_id, headers=headers)
         if (response.status_code == 200):
             return response.json()[0]
         else:
